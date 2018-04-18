@@ -10,4 +10,4 @@ There are 5 files:
 - hist_time.py: it has functions which provide details for fetching historical data (used in ib_live_data.py).
 
 
-* *Note: it is based on 1min frequency.* *
+*Note: it is based on 1min frequency.*
