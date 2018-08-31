@@ -7,7 +7,7 @@ There are 5 files:
 - ib_live_data.py : it is quite generic. You may need to change only the contract details.
 - strategy1.py : it is the main core of your strategy.
 - variables.py : it has all the variables used.
-- strategy.py: it has functions which provide details for fetching historical data (used in ib_live_data.py).
+- strategy.py: it is the strategy format.
 
 
 *Note: it is based on 1min frequency.*
