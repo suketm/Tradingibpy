@@ -33,8 +33,8 @@ cashBalance = {}
 exchRate = {}
 
 # ib
-clientID = 4032
-accntID = 'DU983969'
+clientID = #
+accntID = #
 orderID = None
 connection = None
 connection_status = None		# 0: Paused/ 1: active
