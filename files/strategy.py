@@ -49,7 +49,7 @@ class Strategy(object):
 
 	def get_prices():
 
-		sleep(1) # to get prices after sending the order, there can be delay in an event of low liquidity
+		sleep(1) # to get prices after sending the order, there can be delay in some events.
 
 	def update_enter_details():
 
