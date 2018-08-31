@@ -236,17 +236,16 @@ class Strategy1(object):
 
 
 	def get_prices(self):
-		while 1 > 0:
+		condition1 = 0
+		condition2 = 0
+		while condition1 == 0 or condition2 == 0:
 			if len(v.execution) > 0:
-				condition1 = 0
-				condition2 = 0
 				if v.execution[len(v.execution)-1]['orderID'] == v.orderID:
 					condition1 = 1
 				if len(v.commission) == len(v.execution):
 					condition2 = 1
 				if condition1 == 1 and condition2 == 1:
 					sleep(1)	# to get prices after sending the order, there can be delay in an event of low liquidity
-					break
 		self.price = 0
 		self.commission = 0
 		self.commCurr = ''
