@@ -27,21 +27,21 @@ class Strategy(object):
 	currency1 = 'EUR'
 	currency2 = 'GBP'
 	currencyBase = 'USD'
-	clientID = 1001
-	pip_size = 6			# for all currencies it is 0.0001; for yen based it is 0.01
+	clientID = #######
+	pip_size = #######			# for all currencies it is 0.0001; for yen based it is 0.01
 	memory = 30
-	Z_const = 1.5
-	Z_rebound = 0.15
-	gap_mean_vol_const = 0.00005
-	vol_up = 0.001
-	vol_low = 0.0001
-	vol_slope = 3.5
-	SL_cov = 0.001
-	SL_gap_Z = 2
-	time_SL = 15
-	stop_loss = 0.0015
-	short_memory = 5
-	quantity = 100000
+	Z_const = #######
+	Z_rebound = #######
+	gap_mean_vol_const = #######
+	vol_up = #######
+	vol_low = #######
+	vol_slope = #######
+	SL_cov = #######
+	SL_gap_Z = #######
+	time_SL = #######
+	stop_loss = #######
+	short_memory = #######
+	quantity = #######
 
 	''' For same strategy, below code should remian same '''
 
