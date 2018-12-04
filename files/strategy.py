@@ -394,7 +394,7 @@ class Strategy(object):
 							self.current_pos_type = 1
 
 			elif self.ls_gap_Z[-1] < -1*self.Z_const:
-				if self.vol_low < self.ls_price_vol[-1] < (1-self.ls_gap_Z[-1]/self.vol_slope)*(self.vol_up):
+				if self.vol_low < self.ls_price_vol[-1] < (1+self.ls_gap_Z[-1]/self.vol_slope)*(self.vol_up):
 					if ((self.ls_price_vol_Z[-1] < 0 and self.ls_price_vol[-1] < 0.0001) == False):
 						if self.ls_spread[-1] < 0.0002:
 
