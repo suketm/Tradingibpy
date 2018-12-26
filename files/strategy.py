@@ -27,21 +27,24 @@ class Strategy(object):
 	currency1 = 'EUR'
 	currency2 = 'GBP'
 	currencyBase = 'USD'
-	clientID = #######
-	pip_size = #######			# for all currencies it is 0.0001; for yen based it is 0.01
-	memory = 30
-	Z_const = #######
-	Z_rebound = #######
-	gap_mean_vol_const = #######
-	vol_up = #######
-	vol_low = #######
-	vol_slope = #######
-	SL_cov = #######
-	SL_gap_Z = #######
-	time_SL = #######
-	stop_loss = #######
-	short_memory = #######
-	quantity = #######
+	clientID = 
+	pip_size = 
+	memory = 
+	Z_in = 
+	vol_up = 
+	vol_low = 
+	vol_slope = 
+	Z_out = 
+	tp_pnl = 
+	sl_time = 
+	sl_vol_ratio = 
+	sl_gap_Z_ratio = 
+	sl_price_vol = 
+	sl_pnl = 
+	base = 
+	margin = 
+
+	quantity = 100000
 
 	''' For same strategy, below code should remian same '''
 
@@ -90,16 +93,15 @@ class Strategy(object):
 	ls_price_Z = []
 	ls_price_mean = []
 	ls_price_vol = []
-	ls_price_vol_Z = []
 	ls_gap =[]
 	ls_gap_Z = []
 	ls_gap_mean = []
 	ls_gap_vol = []
 
 	#interactive brokers (contract and ticker Id for each contract)
-	ticker_ls = {'AUD_CHF': None, 'AUD_NZD': None, 'AUD_USD': None, 'CAD_CHF': None, 'CAD_JPY': None, \
-				'CHF_USD': None, 'EUR_GBP': 873, 'EUR_JPY': None, 'EUR_USD': 874, 'GBP_JPY': None, \
-				'GBP_USD': 875, 'NZD_USD': None, 'USD_CAD': None, 'USD_CHF': None, 'USD_JPY': None}
+	ticker_ls = {'AUD_CHF': 870, 'AUD_NZD': 970, 'AUD_USD': 871, 'CAD_CHF': 971, 'CAD_JPY': 872, \
+				'CHF_USD': 972, 'EUR_GBP': 873, 'EUR_JPY': 973, 'EUR_USD': 874, 'GBP_JPY': 974, \
+				'GBP_USD': 875, 'NZD_USD': 975, 'USD_CAD': 876, 'USD_CHF': 976, 'USD_JPY': 877}
 
 	tickerId_price = ticker_ls[currency1+'_'+currency2]
 	tickerId_price1 = ticker_ls[currency1+'_'+currencyBase]
@@ -210,14 +212,10 @@ class Strategy(object):
 			price_vol = ( ((self.ls_price[-1]-price_mean)**2 + (self.memory-1)*self.ls_price_vol[self.n-1-1]**2 )/self.memory)**0.5
 			price_Z = float(self.ls_price[-1] - price_mean)/price_vol
 
-		if self.n > self.memory+self.short_memory:
-			price_vol_Z = (price_vol-np.mean(self.ls_price_vol[-self.short_memory+1:] + [price_vol] ))/np.mean(self.ls_price_vol[-self.short_memory+1:] + [price_vol])
-
 
 		self.ls_price_Z.append(price_Z)
 		self.ls_price_mean.append(price_mean)
 		self.ls_price_vol.append(price_vol)
-		self.ls_price_vol_Z.append(price_vol_Z)
 
 		self.ls_gap_Z.append(gap_Z)
 		self.ls_gap_mean.append(gap_mean)
@@ -227,18 +225,23 @@ class Strategy(object):
 	
 	def display(self):
 
+		if self.ls_gap_Z[-1] >= 0:
+			vol_up = round((1 - self.ls_gap_Z[-1]/ self.vol_slope)* self.vol_up* 10**self.pip_size,2)
+		elif self.ls_gap_Z[-1] < 0:
+			vol_up = round((1 + self.ls_gap_Z[-1]/ self.vol_slope)* self.vol_up* 10**self.pip_size,2)
+
 		print ('\n')
-		print('\tN:', self.n, '\tTime:',self.current_time.time().strftime("%H:%M:%S"),'\tCurrent Pos.:',self.current_pos,\
-			'\tGap_Z:',round(self.ls_gap_Z[-1],2),'\tPrice Vol (*10^',self.pip_size,'):',round(self.ls_price_vol[-1]*10**self.pip_size,2))
+		print ('\tN:', self.n, '\tTime:',self.current_time.time().strftime("%H:%M:%S"),'\tCurrent Pos.:',self.current_pos,\
+			'\tPrice Vol (*10^',self.pip_size,'):',round(self.ls_price_vol[-1]*10**self.pip_size,2),'\tVol Range(',round(self.ls_gap_Z[-1],2),'):',self.vol_low*10**self.pip_size,'-',vol_up)		
 		print('\tTotal PnL (',self.currency2,'):',round(self.total_pnl,2),'\tTotal Comm. (USD):',round(self.total_commission,2),'\tTP:SL::',self.tp,':',self.sl,'\tTotal Trades:',len(self.strategy))
 		print('\t',self.currency1,'.',self.currency2,'ask:',self.ls_ask[-1],'\t',self.currency1,'.',self.currencyBase,'ask:',self.ls_price1_ask[-1],'\t',self.currency2,'.',self.currencyBase,'ask:',self.ls_price2_ask[-1])
 		print('\t',self.currency1,'.',self.currency2,'bid:',self.ls_bid[-1],'\t',self.currency1,'.',self.currencyBase,'bid:',self.ls_price1_bid[-1],'\t',self.currency2,'.',self.currencyBase,'bid:',self.ls_price2_ask[-1])
-		print('\tSpread (*10^',self.pip_size,'):',round(self.ls_spread[-1]*10**self.pip_size,1),'\tGap_Vol(*10^',self.pip_size,'):',round(self.ls_gap_vol[-1]*10**self.pip_size,1),\
-			'\tGap_Mean:',round(self.ls_gap_mean[-1],2),'\tGap:',round(self.ls_gap[-1],2),'\tPrice_Z:',round(self.ls_price_Z[-1],2),'\tPrice_Vol_Z:',round(self.ls_price_vol_Z[-1],2))
-		print('\tOPEN POSITIONS:')
+		
+		if len(self.enter_details) > 0:
 
-		for enter in self.enter_details:
-			if enter['Status'] == 0:
+			if self.enter_details[-1]['Status'] == 0:
+
+				enter = self.enter_details[-1]
 				temp_enter = {}
 
 				temp_enter['Price'] = enter['PriceIn']
@@ -251,12 +254,21 @@ class Strategy(object):
 				temp_enter['SpreadIn (*10',self.pip_size,')'] = round(enter['SpreadIn']*10**self.pip_size,2)
 
 				if enter['Type'] == 1:
-					temp_enter['Unrlzd PnL'] = round((self.ls_bid[-1]-enter['PriceIn'])*self.quantity,2)
-				elif enter['Type'] == -1:
-					temp_enter['Unrlzd PnL'] = round((enter['PriceIn']-self.ls_ask[-1])*self.quantity,2)
+					temp_enter['Unrlzd PnL'] = round(((self.ls_bid[-1]-enter['PriceIn'])*self.base*self.quantity - self.tp_pnl )*100/self.margin,2)
+					temp_enter['sl_price_vol'] = round((self.ls_bid[-1]-self.ls_ask[enter['nIn']])/self.ls_price_vol[-1],2)
+					temp_enter['sl_vol_ratio'] = round(self.ls_price_vol[-1]/self.ls_price_vol[enter['nIn']]*np.sign(self.ls_gap_Z[-1]/self.ls_gap_Z[enter['nIn']]),2)
 
-				print('\tPrice:',temp_enter['Price'],'\tType:',temp_enter['Type'],'\tN:',temp_enter['nIn'],'\tTime:',temp_enter['TimeIn'])
-				print('\tGap_Z',temp_enter['gap_Z'],'\tUnrlzd PnL:',temp_enter['Unrlzd PnL'],'\tSlip. In',temp_enter['Slip. In'])
+				elif enter['Type'] == -1:
+					temp_enter['Unrlzd PnL'] = round(((enter['PriceIn']-self.ls_ask[-1])*self.base*self.quantity-self.tp_pnl )*100/self.margin,2)
+					temp_enter['sl_price_vol'] = round((self.ls_bid[enter['nIn']]-self.ls_ask[-1])/self.ls_price_vol[-1],2)
+					temp_enter['sl_vol_ratio'] = round(self.ls_price_vol[-1]/self.ls_price_vol[enter['nIn']]*np.sign(self.ls_gap_Z[-1]/self.ls_gap_Z[enter['nIn']]),2)
+	
+				self.enter_details[-1]['Unrlzd PnL'] = temp_enter['Unrlzd PnL']
+				self.enter_details[-1]['sl_price_vol'] = temp_enter['sl_price_vol']
+				self.enter_details[-1]['sl_vol_ratio'] = temp_enter['sl_vol_ratio']
+
+				print('\tPrice:',temp_enter['Price'],'\tType:',temp_enter['Type'],'\tN:',temp_enter['nIn'],'\tTime:',temp_enter['TimeIn'],'\tGap_Z',temp_enter['gap_Z'])
+				print('\tUnrlzd PnL:',temp_enter['Unrlzd PnL'],'\tSlip. In:',temp_enter['Slip. In'],'\tPrice_Vol:',temp_enter['sl_price_vol'],'\tVol R.:',temp_enter['sl_vol_ratio'],'\t')
 
 
 	def write_files(self):
@@ -284,7 +296,6 @@ class Strategy(object):
 			temp['price_mean'] = self.ls_price_mean[i]
 			temp['price_vol'] = self.ls_price_vol[i]
 			temp['price_Z'] = self.ls_price_Z[i]
-			temp['price_vol_Z'] = self.ls_price_vol_Z[i]
 			temp['gap'] = self.ls_gap[i]
 			temp['gap_Z'] = self.ls_gap_Z[i]
 			temp['gap_mean'] = self.ls_gap_mean[i]
@@ -321,47 +332,67 @@ class Strategy(object):
 
 		if self.current_pos != 0:
 
-			for enter in self.enter_details:
+			enter = self.enter_details[-1]
 
-				if enter['Status'] == 0:
+			if enter['Status'] == 0:
 
-					if enter['Type'] == 1:
-						if self.ls_spread[-1] < 0.0005:
-							if (self.ls_bid[-1] >  enter['PriceIn'] and self.ls_gap_Z[-1] < -1*self.Z_rebound):
-								ib.place_order(action = 'SELL', quantity = self.quantity, contract = self.contract)
-								self.tp += 1
-								self.exit_type = 'TP'
-								enter['Status'] = 1
-								self.current_pos -= 1
-								self.current_pos_type = 0
-								self.update_exit(enter)
-							elif (self.ls_gap_Z[-1] > self.SL_gap_Z * enter['gap_Z_In']):
-								ib.place_order(action = 'SELL', quantity = self.quantity, contract = self.contract)
-								self.sl += 1
-								self.exit_type = 'SL'
-								enter['Status'] = 1
-								self.current_pos -= 1
-								self.current_pos_type = 0
-								self.update_exit(enter)
+				if enter['Type'] == 1:
+					if self.ls_spread[-1] < 0.0005:
 
-					elif enter['Type'] == -1:
-						if self.ls_spread[-1] < 0.0005:
-							if (enter['PriceIn'] > self.ls_ask[-1] and self.ls_gap_Z[-1] > 1* self.Z_rebound):
-								ib.place_order(action = 'BUY', quantity = self.quantity, contract = self.contract)
-								self.tp += 1
-								self.exit_type = 'TP'
-								enter['Status'] = 1
-								self.current_pos -= 1
-								self.current_pos_type = 0
-								self.update_exit(enter)
-							elif (self.ls_gap_Z[-1] < self.SL_gap_Z * enter['gap_Z_In']):
-								ib.place_order(action = 'BUY', quantity = self.quantity, contract = self.contract)
-								self.sl += 1
-								self.exit_type = 'SL'
-								enter['Status'] = 1
-								self.current_pos -= 1
-								self.current_pos_type = 0
-								self.update_exit(enter)
+						condition_tp = 
+						condition_sl_1 = 
+						condition_sl_2 = 
+						condition_sl_3 = 
+						condition_sl_4 = 
+						condition_sl_5 = 
+						temp_sl = [condition_sl_1, condition_sl_2, condition_sl_3, condition_sl_4, condition_sl_5]
+						temp_sl_dict = {0: 'SL_1', 1: 'SL_2', 2: 'SL_3', 3: 'SL_4',4: 'SL_5'}
+
+						if condition_tp == 1:
+							ib.place_order(action = 'SELL', quantity = self.quantity, contract = self.contract)
+							self.tp += 1
+							self.exit_type = 'TP'
+							enter['Status'] = 1
+							self.current_pos -= 1
+							self.current_pos_type = 0
+							self.update_exit(enter)
+						elif condition_sl_1 == 1 or condition_sl_2 == 1 or condition_sl_3 == 1 or condition_sl_4 == 1 or condition_sl_5 == 1:
+							ib.place_order(action = 'SELL', quantity = self.quantity, contract = self.contract)
+							self.sl += 1
+							self.exit_type = temp_sl_dict[temp_sl.index(1)]
+							enter['Status'] = 1
+							self.current_pos -= 1
+							self.current_pos_type = 0
+							self.update_exit(enter)
+
+				elif enter['Type'] == -1:
+					if self.ls_spread[-1] < 0.0005:
+
+						condition_tp = 
+						condition_sl_1 = 
+						condition_sl_2 = 
+						condition_sl_3 = 
+						condition_sl_4 = 
+						condition_sl_5 = 
+						temp_sl = [condition_sl_1, condition_sl_2, condition_sl_3, condition_sl_4, condition_sl_5]
+						temp_sl_dict = {0: 'SL_1', 1: 'SL_2', 2: 'SL_3', 3: 'SL_4',4: 'SL_5'}
+						
+						if condition_tp == 1:
+							ib.place_order(action = 'BUY', quantity = self.quantity, contract = self.contract)
+							self.tp += 1
+							self.exit_type = 'TP'
+							enter['Status'] = 1
+							self.current_pos -= 1
+							self.current_pos_type = 0
+							self.update_exit(enter)
+						elif condition_sl_1 == 1 or condition_sl_2 == 1 or condition_sl_3 == 1 or condition_sl_4 == 1 or condition_sl_5 == 1:
+							ib.place_order(action = 'BUY', quantity = self.quantity, contract = self.contract)
+							self.sl += 1
+							self.exit_type = temp_sl_dict[temp_sl.index(1)]
+							enter['Status'] = 1
+							self.current_pos -= 1
+							self.current_pos_type = 0
+							self.update_exit(enter)
 
 
 	def enter(self):
@@ -386,19 +417,13 @@ class Strategy(object):
 
 		if self.n > self.memory:
 
-			if self.ls_gap_Z[-1] > self.Z_const:
-				if self.vol_low < self.ls_price_vol[-1] < (1-self.ls_gap_Z[-1]/self.vol_slope)*(self.vol_up):
-					if ((self.ls_price_vol_Z[-1] < 0 and self.ls_price_vol[-1] < 0.0001) == False):
-						if self.ls_spread[-1] < 0.0002:
+			if :
 
-							self.current_pos_type = 1
+				self.current_pos_type = 1
 
-			elif self.ls_gap_Z[-1] < -1*self.Z_const:
-				if self.vol_low < self.ls_price_vol[-1] < (1+self.ls_gap_Z[-1]/self.vol_slope)*(self.vol_up):
-					if ((self.ls_price_vol_Z[-1] < 0 and self.ls_price_vol[-1] < 0.0001) == False):
-						if self.ls_spread[-1] < 0.0002:
+			elif :
 
-							self.current_pos_type = -1
+				self.current_pos_type = -1
 
 
 	def get_prices(self):
