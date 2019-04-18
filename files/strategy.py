@@ -24,25 +24,12 @@ class Strategy(object):
 
 	''' variables '''
 	#Quant Parameters
-	currency1 = 'EUR'
-	currency2 = 'GBP'
-	currencyBase = 'USD'
+	currency1 = 'AUD'
+	currency2 = 'NZD'
 	clientID = 
 	pip_size = 
 	memory = 
-	Z_in = 
-	vol_up = 
-	vol_low = 
-	vol_slope = 
-	Z_out = 
-	tp_pnl = 
-	sl_time = 
-	sl_vol_ratio = 
-	sl_gap_Z_ratio = 
-	sl_price_vol = 
-	sl_pnl = 
-	base = 
-	margin = 
+	
 
 	quantity = 100000
 
@@ -99,9 +86,7 @@ class Strategy(object):
 	ls_gap_vol = []
 
 	#interactive brokers (contract and ticker Id for each contract)
-	ticker_ls = {'AUD_CHF': 870, 'AUD_NZD': 970, 'AUD_USD': 871, 'CAD_CHF': 971, 'CAD_JPY': 872, \
-				'CHF_USD': 972, 'EUR_GBP': 873, 'EUR_JPY': 973, 'EUR_USD': 874, 'GBP_JPY': 974, \
-				'GBP_USD': 875, 'NZD_USD': 975, 'USD_CAD': 876, 'USD_CHF': 976, 'USD_JPY': 877}
+	ticker_ls = {,}
 
 	tickerId_price = ticker_ls[currency1+'_'+currency2]
 	tickerId_price1 = ticker_ls[currency1+'_'+currencyBase]
@@ -194,32 +179,12 @@ class Strategy(object):
 
 		if self.n == self.memory:
 
-			gap_mean = np.mean(self.ls_gap)
-			gap_vol = np.std(self.ls_gap)
-			gap_Z = float(self.ls_gap[-1] - gap_mean)/gap_vol
-
-			price_mean = np.mean(self.ls_price)
-			price_vol = np.std(self.ls_price)
-			price_Z = float(self.ls_price[-1] - price_mean)/price_vol
-
+			
+			
 		elif self.n > self.memory:
 
-			gap_mean = ( self.ls_gap[-1] + (self.memory-1)*self.ls_gap_mean[self.n-1-1] ) / self.memory
-			gap_vol = ( ((self.ls_gap[-1]-gap_mean)**2 + (self.memory-1)*self.ls_gap_vol[self.n-1-1]**2 )/self.memory)**0.5
-			gap_Z = float(self.ls_gap[-1] - gap_mean)/gap_vol
-
-			price_mean = ( self.ls_price[-1] + (self.memory-1)*self.ls_price_mean[self.n-1-1] ) / self.memory
-			price_vol = ( ((self.ls_price[-1]-price_mean)**2 + (self.memory-1)*self.ls_price_vol[self.n-1-1]**2 )/self.memory)**0.5
-			price_Z = float(self.ls_price[-1] - price_mean)/price_vol
-
-
-		self.ls_price_Z.append(price_Z)
-		self.ls_price_mean.append(price_mean)
-		self.ls_price_vol.append(price_vol)
-
-		self.ls_gap_Z.append(gap_Z)
-		self.ls_gap_mean.append(gap_mean)
-		self.ls_gap_vol.append(gap_vol)
+			
+		
 
 
 	
